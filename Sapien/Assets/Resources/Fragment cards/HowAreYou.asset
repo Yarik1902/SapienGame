@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 240f26481a678084c8564da195818be3, type: 3}
+  m_Name: HowAreYou
+  m_EditorClassIdentifier: 
+  cardID: 0
+  cardName: How Are You
+  cardSprite: {fileID: 21300000, guid: 5aac90b6a98dbab46901b79749342d75, type: 3}
+  cardEnergy: 150
+  cardReview: ABRAKADABRA
+  storyQuestCount: 4
+  quality: 0.15
+  money: 0.5
+  time: 120

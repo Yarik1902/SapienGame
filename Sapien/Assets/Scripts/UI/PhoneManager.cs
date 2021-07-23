@@ -194,4 +194,5 @@ public class PhoneManager : MonoBehaviour
         CameraPanel.GetComponent<CameraManager>().enabled = false;
         Camera.main.GetComponent<Transform>().localEulerAngles = new Vector3(0f, 0f, 0f);
     }
+    
 }

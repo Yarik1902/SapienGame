@@ -4,12 +4,9 @@ using System.Collections.Generic;
 using System.Runtime.Remoting;
 using UnityEngine;
 
-public class QuestAfterStoryQuest : MonoBehaviour
+public class QuestAfterStoryQuest : Quest
 {
-    public string questName;
     public CardInfo questForCard;
-    private bool availible = false;
-    private bool activated = false;
 
     private void Start()
     {
@@ -25,6 +22,11 @@ public class QuestAfterStoryQuest : MonoBehaviour
         }
     }
 
+    public override void OpenQuest()
+    {
+        TryOpen(questForCard);
+    }
+
     public void TryOpen(CardInfo card)
     {
         if (card != null && card.cardID == questForCard.cardID && !QuestManager.instance.completedQuest.TryGetValue(questName, out bool flag))
@@ -32,18 +34,9 @@ public class QuestAfterStoryQuest : MonoBehaviour
             availible = true;
             Debug.Log($"<b>{questName}</b> <color=blue>Availible</color>");
         }
-    }
-
-    public void Activate()
-    {
-        if (availible)
-        {
-            activated = true;
-            Debug.Log($"<b>{questName}</b> <color=green>Activated</color>");
-        }
         else
         {
-            Debug.Log($"<b>{questName}</b> <color=red>don't availible</color>");
+            Debug.Log($"<b>{questName}</b> <color=red>isn't availible , complete story mission</color>");
         }
     }
 

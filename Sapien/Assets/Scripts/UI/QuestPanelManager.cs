@@ -19,19 +19,30 @@ public class QuestPanelManager : MonoBehaviour
 
     public void AddQuestToActiveList(string name, string tag)
     {
-        if (QuestAdded) {
-            if (LastActiveQuest < 3)
+        if (LastActiveQuest < 3)
+        {
+            QuestIcon[LastActiveQuest].SetActive(true);
+            QuestPrice[LastActiveQuest].GetComponent<Text>().text = Random.Range(100, 1000).ToString();
+            QuestDescription[LastActiveQuest].GetComponent<Text>().text = tag;
+
+            if (tag == "Start of fragment")
             {
-                QuestIcon[LastActiveQuest].SetActive(true);
-                QuestPrice[LastActiveQuest].GetComponent<Text>().text = Random.Range(100, 1000).ToString();
-                QuestDescription[LastActiveQuest].GetComponent<Text>().text = tag;
-                LastActiveQuest++;
+                QuestManager.instance.GetQuestForGiveCardByName(name)?.Activate();
             }
-            else if (LastActiveQuest == 3)
+            else if (tag == "Story quest")
             {
-                StartCoroutine(WarningPanel());
+                QuestManager.instance.GetStoryQuestByName(name)?.Activate();
             }
-            QuestAdded = false;
+            else
+            {
+                QuestManager.instance.GetQuestAfterStoryQuestByName(name)?.Activate();
+            }
+            
+            LastActiveQuest++;
+        }
+        else if (LastActiveQuest == 3)
+        {
+            StartCoroutine(WarningPanel());
         }
     }
 

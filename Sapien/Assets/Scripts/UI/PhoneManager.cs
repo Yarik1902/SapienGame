@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -90,46 +91,58 @@ public class PhoneManager : MonoBehaviour
     {
         anim.Play("Messages0");
         GetComponent<Button>().interactable = true;
-        GetComponent<QuestPanelManager>().AddQuestToActiveList("System", QuestType[CurrentQuestType]);
+        //GetComponent<QuestPanelManager>().AddQuestToActiveList("System", QuestType[CurrentQuestType]);
     }
 
     public void OnNotificationOpener()
     {
         Notification.SetActive(true);
         Messages.GetComponent<MessagesManager>().QuestAvailable = QuestAvailable;
-        if (!QuestAvailable)
+        if (!QuestAvailable && QuestManager.instance.storyQuestStage == StoryQuestStage.DontStarted)
         {
-            GameObject.Find("QuestType").GetComponent<Text>().text = QuestType[0];
-            Messages.GetComponent<MessagesManager>().AddQuest("System", QuestType[0]);
-            anim.Play("NotificationOpen");
-            /*Messages.GetComponent<MessagesManager>().OnClickChatOpener(QuestType[0]);*/
-            QuestAvailable = true;
-            CurrentQuestType = 0;
+            QuestForGiveCard questForGiveCard = FindObjectOfType<QuestForGiveCard>(true);
+            if (!questForGiveCard.availible)
+            {
+                questForGiveCard.OpenQuest();
+                GameObject.Find("QuestType").GetComponent<Text>().text = QuestType[0];
+                Messages.GetComponent<MessagesManager>().AddQuest(questForGiveCard.questName, QuestType[0]);
+                anim.Play("NotificationOpen");
+                /*Messages.GetComponent<MessagesManager>().OnClickChatOpener(QuestType[0]);*/
+
+                QuestAvailable = true;
+                CurrentQuestType = 0;
+            }
         }
         else
         {
-            if (!SecondQuestAvailable)
+            if (!SecondQuestAvailable && QuestManager.instance.storyQuestStage == StoryQuestStage.Started)
             {
+                StoryQuest storyQuest = QuestManager.instance.GetCurrentStoryQuest();
+                
+                storyQuest.OpenQuest();
                 GameObject.Find("QuestType").GetComponent<Text>().text = QuestType[1];
-                Messages.GetComponent<MessagesManager>().AddQuest("System", QuestType[1]);
+                Messages.GetComponent<MessagesManager>().AddQuest(storyQuest.questName, QuestType[1]);
                 anim.Play("NotificationOpen");
                 /*Messages.GetComponent<MessagesManager>().OnClickChatOpener(QuestType[1]);*/
                 SecondQuestAvailable = true;
                 CurrentQuestType = 1;
             }
-            else
+            else if (QuestManager.instance.storyQuestStage == StoryQuestStage.Complete)
             {
-                StartCoroutine(Notifying());
+                //StartCoroutine(Notifying());
+                QuestAfterStoryQuest quest = QuestManager.instance.questAfterStoryQuestList.LastOrDefault();
+                if (quest != null)
+                    QuestManager.instance.questAfterStoryQuestList.RemoveAt(QuestManager.instance.questAfterStoryQuestList.Count - 1);
                 switch (Random.Range(0, 2))
                 {
                     case 0:
                         GameObject.Find("QuestType").GetComponent<Text>().text = QuestType[2];
-                        Messages.GetComponent<MessagesManager>().AddQuest("Andrew", QuestType[2]);
+                        Messages.GetComponent<MessagesManager>().AddQuest(quest.questName, QuestType[2]);
                         CurrentQuestType = 2;
                         break;
                     case 1:
                         GameObject.Find("QuestType").GetComponent<Text>().text = QuestType[3];
-                        Messages.GetComponent<MessagesManager>().AddQuest("Andrew", QuestType[3]);
+                        Messages.GetComponent<MessagesManager>().AddQuest(quest.questName, QuestType[3]);
                         CurrentQuestType = 3;
                         break;
 
@@ -137,7 +150,7 @@ public class PhoneManager : MonoBehaviour
                 anim.Play("NotificationOpen");
             }
         }
-        GetComponent<QuestPanelManager>().QuestAdded = true;
+        //GetComponent<QuestPanelManager>().QuestAdded = true;
     }
 
     public IEnumerator Notifying()

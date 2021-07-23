@@ -21,33 +21,37 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/FragmentCard/FragmentCardPhoneCell.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Quest/TestQuest1.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../Roma/Sapien/Assets/Scripts/UI/MessagesManager.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Quest/QuestForGiveCard.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Timers/testscript.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Timers/TimerUI.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Quest/Quest.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@10.3.2/Editor/AssetPostProcessors/MaterialPostprocessor.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <changedPaths>
       <option value="$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@10.3.2/Editor/AssetPostProcessors/MaterialPostprocessor.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/FragmentCard/EnergyBar.cs" />
-      <option value="$PROJECT_DIR$/Assets/Scripts/UI/PhoneManager.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/FragmentCard/InGameTimer.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/Timers/testscript.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/Timers/InGameTimer.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/Timers/FragmentCardTimer.cs" />
-      <option value="$PROJECT_DIR$/Assets/Scripts/UI/StoryManager.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/Quest/QuestTrade.cs" />
-      <option value="$PROJECT_DIR$/Assets/Scripts/Quest/Quest.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/FragmentCard/FragmentCardPhoneCell.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/Timers/TimerUI.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/FragmentCard/FragmentCard.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/FragmentCard/CardInfo.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/Quest/TestQuest1.cs" />
-      <option value="$PROJECT_DIR$/Assets/Scripts/Quest/QuestForGiveCard.cs" />
-      <option value="$PROJECT_DIR$/Assets/Scripts/Quest/QuestManager.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/Quest/TestQuest2.cs" />
+      <option value="$PROJECT_DIR$/Assets/Scripts/UI/StoryManager.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/Quest/StoryQuest.cs" />
+      <option value="$PROJECT_DIR$/Assets/Scripts/Quest/QuestForGiveCard.cs" />
+      <option value="$PROJECT_DIR$/Assets/Scripts/Quest/Quest.cs" />
+      <option value="$PROJECT_DIR$/Assets/Scripts/UI/QuestPanelManager.cs" />
       <option value="$PROJECT_DIR$/Assets/Scripts/Quest/QuestAfterStoryQuest.cs" />
+      <option value="$PROJECT_DIR$/Assets/Scripts/UI/PhoneManager.cs" />
+      <option value="$PROJECT_DIR$/Assets/Scripts/UI/MessagesManager.cs" />
+      <option value="$PROJECT_DIR$/Assets/Scripts/Quest/QuestManager.cs" />
     </changedPaths>
   </component>
   <component name="ProjectId" id="1vY3Fuz4Mdqd3J0tFshgixmPjdr" />
@@ -100,7 +104,8 @@
       <workItem from="1626863791599" duration="12942000" />
       <workItem from="1626934089200" duration="14055000" />
       <workItem from="1626964530112" duration="2036000" />
-      <workItem from="1627023198569" duration="8053000" />
+      <workItem from="1627023198569" duration="8706000" />
+      <workItem from="1627041511229" duration="17989000" />
     </task>
     <servers />
   </component>

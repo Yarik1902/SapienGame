@@ -17,7 +17,10 @@ public class QuestManager : MonoBehaviour
     public List<StoryQuest> storyQuestList;
     public List<QuestForGiveCard> questForGiveCardList;
     public List<QuestAfterStoryQuest> questAfterStoryQuestList;
+    public List<FriendQuest> friendQuestsList;
+    
     public Dictionary<string, bool> completedQuest = new Dictionary<string, bool>();
+    public Dictionary<string, bool> deletedQuest = new Dictionary<string, bool>();
 
     public StoryQuestStage storyQuestStage = StoryQuestStage.DontStarted;
     
@@ -49,10 +52,13 @@ public class QuestManager : MonoBehaviour
         SceneManager.sceneLoaded += LoadAllQuestsAfterStoryQuest;
         
         SceneManager.sceneLoaded += LoadAllStoryQuestOnScene;
+        
+        SceneManager.sceneLoaded += LoadAllFriendQuests;
 
         LoadAllQuestsForGiveCard(SceneManager.GetActiveScene() , LoadSceneMode.Single);
         LoadAllStoryQuestOnScene(SceneManager.GetActiveScene() , LoadSceneMode.Single);
         LoadAllQuestsAfterStoryQuest(SceneManager.GetActiveScene() , LoadSceneMode.Single);
+        LoadAllFriendQuests(SceneManager.GetActiveScene() , LoadSceneMode.Single);
     }
 
     public void TakeNewFragmentCard(CardInfo newCard)
@@ -63,8 +69,12 @@ public class QuestManager : MonoBehaviour
         completedQuest.Clear();
         card = newCard;
         
+        LoadAllQuestsForGiveCard(SceneManager.GetActiveScene() , LoadSceneMode.Single);
         LoadAllStoryQuestOnScene(SceneManager.GetActiveScene() , LoadSceneMode.Single);
+        LoadAllQuestsAfterStoryQuest(SceneManager.GetActiveScene() , LoadSceneMode.Single);
         
+        if (questLogic != null)
+            StopCoroutine(questLogic);
         questLogic = StartCoroutine(StartNewStoryQuest());
         FragmentCard.instance.TakeFragmentCard(card);
     }
@@ -80,14 +90,15 @@ public class QuestManager : MonoBehaviour
 
     public IEnumerator StartNewStoryQuest()
     {
+        OnStoryStarted?.Invoke(card);
         currentActiveStoryQuest = 0;
         storyQuestList.Sort((x,y) => x.questOrder.CompareTo(y.questOrder));
-        while (currentActiveStoryQuest < storyQuestList.Count)
+        while (currentActiveStoryQuest < storyQuestList.Count && storyQuestCompleted < card.storyQuestCount)
         {
             int i = currentActiveStoryQuest;
             if (!storyQuestList[i].availible && lastQuestOrder + 1 == storyQuestList[i].questOrder)
             {
-                //storyQuestList[i].OpenQuest();
+                storyQuestList[i].OpenQuest();
                 storyQuestList[i].OnQuestComplete += (() =>
                 {
                     lastQuestOrder = storyQuestList[i].questOrder;
@@ -118,7 +129,7 @@ public class QuestManager : MonoBehaviour
         QuestForGiveCard[] questListLoc = FindObjectsOfType<QuestForGiveCard>(true);
         foreach (QuestForGiveCard quest in questListLoc)
         {
-            if (!completedQuest.ContainsKey(quest.questName))
+            if (!completedQuest.ContainsKey(quest.questName) && !deletedQuest.ContainsKey(quest.questName))
             {
                 questForGiveCardList.Add(quest);
             }
@@ -132,7 +143,7 @@ public class QuestManager : MonoBehaviour
         StoryQuest[] questListLoc = FindObjectsOfType<StoryQuest>(true);
         foreach (StoryQuest quest in questListLoc)
         {
-            if (quest.questFromCard.cardID == card.cardID && !completedQuest.ContainsKey(quest.questName))
+            if (quest.questFromCard.cardID == card.cardID && !completedQuest.ContainsKey(quest.questName) && !deletedQuest.ContainsKey(quest.questName))
             {
                 storyQuestList.Add(quest);
             }
@@ -152,7 +163,7 @@ public class QuestManager : MonoBehaviour
         QuestAfterStoryQuest[] questListLoc = FindObjectsOfType<QuestAfterStoryQuest>(true);
         foreach (QuestAfterStoryQuest quest in questListLoc)
         {
-            if (quest.questForCard.cardID == card.cardID && !completedQuest.ContainsKey(quest.questName))
+            if (quest.CanActivateCardOnFragmentCard(card) && !completedQuest.ContainsKey(quest.questName) && !deletedQuest.ContainsKey(quest.questName))
             {
                 questAfterStoryQuestList.Add(quest);
             }
@@ -160,12 +171,27 @@ public class QuestManager : MonoBehaviour
         
         Debug.Log($"<size=14>Found  <b><color=blue>{questAfterStoryQuestList.Count}</color></b> after story quests</size>");
     }
+    
+    public void LoadAllFriendQuests(Scene scene , LoadSceneMode mode)
+    {
+        friendQuestsList = new List<FriendQuest>();
+        FriendQuest[] questListLoc = FindObjectsOfType<FriendQuest>(true);
+        foreach (FriendQuest quest in questListLoc)
+        {
+            if (!completedQuest.ContainsKey(quest.questName) && !deletedQuest.ContainsKey(quest.questName))
+            {
+                friendQuestsList.Add(quest);
+            }
+        }
+        
+        Debug.Log($"<size=14>Found  <b><color=blue>{friendQuestsList.Count}</color></b> friend quests</size>");
+    }
 
-    public QuestForGiveCard GetQuestForGiveCardByName(string name)
+    public QuestForGiveCard GetQuestForGiveCardByName(string name_)
     {
         foreach (QuestForGiveCard quest in questForGiveCardList)
         {
-            if (quest.questName == name)
+            if (quest != null && quest.questName == name_)
             {
                 return quest;
             }
@@ -173,11 +199,12 @@ public class QuestManager : MonoBehaviour
         return null;
     }
     
-    public StoryQuest GetStoryQuestByName(string name)
+    public StoryQuest GetStoryQuestByName(string name_)
     {
+        Debug.Log(name_);
         foreach (StoryQuest quest in storyQuestList)
         {
-            if (quest.questName == name)
+            if (quest != null && quest.questName == name_)
             {
                 return quest;
             }
@@ -185,16 +212,45 @@ public class QuestManager : MonoBehaviour
         return null;
     }
     
-    public QuestAfterStoryQuest GetQuestAfterStoryQuestByName(string name)
+    public QuestAfterStoryQuest GetQuestAfterStoryQuestByName(string name_)
     {
         foreach (QuestAfterStoryQuest quest in questAfterStoryQuestList)
         {
-            if (quest.questName == name)
+            if (quest != null && quest.questName == name_)
             {
                 return quest;
             }
         }
         return null;
+    }
+    public FriendQuest GetFriendQuestByName(string name_)
+    {
+        foreach (FriendQuest quest in friendQuestsList)
+        {
+            if (quest != null && quest.questName == name_)
+            {
+                return quest;
+            }
+        }
+        return null;
+    }
+    
+    
+    public Quest GetQuestByName(string name_)
+    {
+        //Debug.Log(name_);
+        Quest result = GetStoryQuestByName(name_);
+        
+        if (result == null)
+            result = GetQuestForGiveCardByName(name_);
+
+        if (result == null)
+            result = GetQuestAfterStoryQuestByName(name_);
+        
+        if (result == null)
+            result = GetFriendQuestByName(name_);
+        //Debug.Log(result.questName);
+        return result;
     }
     
     public void CompleteQuest(string questName , bool storyQuest)
@@ -212,4 +268,44 @@ public class QuestManager : MonoBehaviour
             storyQuestCompleted++;
     }
 
+    public void AddToDeletedQuest(Quest quest)
+    {
+        if (deletedQuest.ContainsKey(quest.questName))
+        {
+            deletedQuest[quest.questName] = true;
+        }
+        else
+        {
+            deletedQuest.Add(quest.questName , true);  
+        }
+    }
+
+    public void DeleteQuest(Quest quest)
+    {
+        questAfterStoryQuestList.RemoveAll((QuestAfterStoryQuest lhs) =>
+        {
+            if (quest.questName == lhs.questName)
+                AddToDeletedQuest(lhs);
+            return quest.questName == lhs.questName;
+        });
+        questForGiveCardList.RemoveAll((QuestForGiveCard lhs) =>
+        {
+            if (quest.questName == lhs.questName)
+                AddToDeletedQuest(lhs);
+            return quest.questName == lhs.questName;
+        });
+        storyQuestList.RemoveAll((StoryQuest lhs) =>
+        {
+            if (quest.questName == lhs.questName)
+                AddToDeletedQuest(lhs);
+            return quest.questName == lhs.questName;
+        });
+    }
+
+    public bool IsQuestCompleted(Quest quest)
+    {
+        bool flag;
+        completedQuest.TryGetValue(quest.questName, out flag);
+        return flag;
+    }
 }

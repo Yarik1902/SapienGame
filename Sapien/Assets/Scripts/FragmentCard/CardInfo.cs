@@ -7,6 +7,7 @@ public class CardInfo : ScriptableObject
 {
     public int cardID;
     public string cardName;
+    public string cardDescription;
     public Sprite cardSprite;
     public int cardEnergy = 150;
     public string cardReview;

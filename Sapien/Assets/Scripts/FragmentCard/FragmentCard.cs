@@ -48,6 +48,8 @@ public class FragmentCard : MonoBehaviour
     
     public static List<CardInfo> allCards = new List<CardInfo>();
 
+    public event Action<CardInfo> onFragmentCardComplete;
+    
     private void Awake()
     {
         if (instance == null)
@@ -57,11 +59,19 @@ public class FragmentCard : MonoBehaviour
 
         if (allCards.Count == 0)
             allCards = Resources.LoadAll<CardInfo>("Fragment cards").ToList();
+        
+        allCards.Sort((CardInfo lhs , CardInfo rhs) =>
+        {
+            return (lhs.cardID - rhs.cardID);
+        });
+        
         Debug.Log($"<size=15> <color=green>{allCards.Count}</color> fragment cards founded</size>");
         foreach (CardInfo card in allCards)
         {
             Debug.Log($"<color=grey>{card.cardName}</color>");
         }
+
+        phoneManager = GameObject.Find("PhoneButton").GetComponent<PhoneManager>();
     }
 
     private void Start()
@@ -314,6 +324,7 @@ public class FragmentCard : MonoBehaviour
     public void OnCardComplete()
     {
         Debug.Log(cardInfo.cardName + " Card Complete");
+        onFragmentCardComplete?.Invoke(cardInfo);
         StartCoroutine(ShowCells(false));
     }
     

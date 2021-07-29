@@ -6,7 +6,11 @@ using UnityEngine;
 public class QuestForGiveCard : Quest
 {
     public CardInfo card;
-    
+
+    private void Awake()
+    {
+        DontDestroyOnLoad(this.gameObject);
+    }
 
     public void TakeCard(CardInfo card_)
     {
@@ -28,15 +32,17 @@ public class QuestForGiveCard : Quest
         }
     }
 
-    public void CompleteQuest()
+    public override void QuestComplete()
     {
         if (activated)
         {
-            Debug.Log($"Quest for give card <b>{card.cardName}</b> <color=yellow>completed</color>");
+            //Debug.Log($"Quest for give card <b>{card.cardName}</b> <color=yellow>completed</color>");
             QuestManager.instance.CompleteQuest(questName , false);
             QuestManager.instance.TakeNewFragmentCard(card);
+            base.QuestComplete();
             Destroy(this);
         }
     }
+
 
 }

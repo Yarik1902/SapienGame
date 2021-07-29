@@ -1,11 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class PhoneManager : MonoBehaviour
 {
+    [HideInInspector] public PhoneManager instance;
     public GameObject Phone;
     public float Increment;
     public GameObject StoryScreen;
@@ -25,9 +29,41 @@ public class PhoneManager : MonoBehaviour
     public bool NotOpened = true;
     public GameObject CameraPanel;
 
+    [HideInInspector] public Coroutine CR_StoryQuest , CR_NotificationShaking;
+    
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            //DontDestroyOnLoad(this.gameObject);
+        }
+        else
+        {
+            Destroy(this.gameObject);
+        }
+
+        MessagesSave.instance.Load(SceneManager.GetActiveScene() , LoadSceneMode.Single);
+    }
+
     public void OnButtonClickPhoneOpener()
     {
         Phone.SetActive(true);
+
+        
+        int unread = Messages.GetComponent<MessagesManager>().GetUnreadMassages();
+
+        if (unread > 0)
+        {
+            Phone.transform.Find("Mail").GetChild(0).gameObject.SetActive(true);
+            Phone.transform.Find("Mail").GetChild(1).gameObject.SetActive(true);
+            Phone.transform.Find("Mail").GetChild(1).GetComponent<Text>().text = unread.ToString();
+        }
+        else
+        {
+            Phone.transform.Find("Mail").GetChild(0).gameObject.SetActive(false);
+            Phone.transform.Find("Mail").GetChild(1).gameObject.SetActive(false);
+        }
     }
 
     public void OnButtonClickPhoneCloser()
@@ -98,61 +134,175 @@ public class PhoneManager : MonoBehaviour
     {
         Notification.SetActive(true);
         Messages.GetComponent<MessagesManager>().QuestAvailable = QuestAvailable;
-        if (!QuestAvailable && QuestManager.instance.storyQuestStage == StoryQuestStage.DontStarted)
+        if (QuestManager.instance.storyQuestStage == StoryQuestStage.DontStarted)
         {
             QuestForGiveCard questForGiveCard = FindObjectOfType<QuestForGiveCard>(true);
             if (!questForGiveCard.availible)
             {
                 questForGiveCard.OpenQuest();
-                GameObject.Find("QuestType").GetComponent<Text>().text = QuestType[0];
-                Messages.GetComponent<MessagesManager>().AddQuest(questForGiveCard.questName, QuestType[0]);
-                anim.Play("NotificationOpen");
-                /*Messages.GetComponent<MessagesManager>().OnClickChatOpener(QuestType[0]);*/
-
-                QuestAvailable = true;
-                CurrentQuestType = 0;
             }
+            if (!Messages.GetComponent<MessagesManager>().IsQuestAdded(questForGiveCard.questName) && !QuestManager.instance.IsQuestCompleted(questForGiveCard))
+            {
+                Messages.GetComponent<MessagesManager>().AddQuest(questForGiveCard.questName, QuestType[0]);
+            }
+            if (!questForGiveCard.activated && !QuestManager.instance.IsQuestCompleted(questForGiveCard))
+            {
+                Messages.GetComponent<MessagesManager>().MakeMessageUnreaded(questForGiveCard.questName);
+                UpdateNotificationInfo(questForGiveCard , true , 1);
+                CR_NotificationShaking = StartCoroutine(ShowNotification(9999999));
+            }
+            /*Messages.GetComponent<MessagesManager>().OnClickChatOpener(QuestType[0]);*/
+
+            QuestAvailable = true;
+            CurrentQuestType = 0;
+            
         }
         else
         {
-            if (!SecondQuestAvailable && QuestManager.instance.storyQuestStage == StoryQuestStage.Started)
+            if (QuestManager.instance.storyQuestStage == StoryQuestStage.Started)
             {
                 StoryQuest storyQuest = QuestManager.instance.GetCurrentStoryQuest();
-                
-                storyQuest.OpenQuest();
-                GameObject.Find("QuestType").GetComponent<Text>().text = QuestType[1];
-                Messages.GetComponent<MessagesManager>().AddQuest(storyQuest.questName, QuestType[1]);
-                anim.Play("NotificationOpen");
-                /*Messages.GetComponent<MessagesManager>().OnClickChatOpener(QuestType[1]);*/
-                SecondQuestAvailable = true;
-                CurrentQuestType = 1;
+                if (storyQuest.availible)
+                {
+                    if (storyQuest.questOrder > 1)
+                    {
+                        //storyQuest.Activate();
+                        GetComponent<QuestPanelManager>().AddQuestToActiveList(storyQuest.questName , QuestType[1]);
+                    }
+                    else
+                    {
+                        if (!Messages.GetComponent<MessagesManager>().IsQuestAdded(storyQuest.questName) && !QuestManager.instance.IsQuestCompleted(storyQuest))
+                        {
+                            Messages.GetComponent<MessagesManager>().AddQuest(storyQuest.questName, QuestType[1]);
+                        }
+
+                        if (!storyQuest.activated && !QuestManager.instance.IsQuestCompleted(storyQuest))
+                        {
+                            Messages.GetComponent<MessagesManager>().MakeMessageUnreaded(storyQuest.questName);
+                            UpdateNotificationInfo(storyQuest, true, 1);
+                            CR_NotificationShaking = StartCoroutine(ShowNotification(999999));
+                        }
+                    }
+
+                    /*Messages.GetComponent<MessagesManager>().OnClickChatOpener(QuestType[1]);*/
+                    //SecondQuestAvailable = true;
+                    CurrentQuestType = 1;
+                }
             }
             else if (QuestManager.instance.storyQuestStage == StoryQuestStage.Complete)
             {
-                //StartCoroutine(Notifying());
-                QuestAfterStoryQuest quest = QuestManager.instance.questAfterStoryQuestList.LastOrDefault();
-                if (quest != null)
-                    QuestManager.instance.questAfterStoryQuestList.RemoveAt(QuestManager.instance.questAfterStoryQuestList.Count - 1);
-                switch (Random.Range(0, 2))
+                QuestAfterStoryQuest lastQuest = null;
+                int questsInMessages = 0;
+                foreach (QuestAfterStoryQuest quest in QuestManager.instance.questAfterStoryQuestList)
                 {
-                    case 0:
-                        GameObject.Find("QuestType").GetComponent<Text>().text = QuestType[2];
-                        Messages.GetComponent<MessagesManager>().AddQuest(quest.questName, QuestType[2]);
-                        CurrentQuestType = 2;
-                        break;
-                    case 1:
-                        GameObject.Find("QuestType").GetComponent<Text>().text = QuestType[3];
-                        Messages.GetComponent<MessagesManager>().AddQuest(quest.questName, QuestType[3]);
-                        CurrentQuestType = 3;
-                        break;
+                    if (!QuestManager.instance.completedQuest.ContainsKey(quest.questName) && quest.CanActivateCardOnFragmentCard(QuestManager.instance.card))
+                    {
+                        if (!quest.availible)
+                        {
+                            quest.TryOpen(FragmentCard.instance.cardInfo);
+                        }
+     
+                        if (quest.availible && !quest.activated)
+                        {
+                            lastQuest = quest;
+                            bool isAdded = Messages.GetComponent<MessagesManager>().IsQuestAdded(quest.questName); 
+                            if (!isAdded)
+                            {
+                                Messages.GetComponent<MessagesManager>().AddQuest(quest.questName, QuestType[2]);
+                                questsInMessages++;
+                            }
+                            else
+                            {
+                                questsInMessages++;
+                            }
 
+                            Messages.GetComponent<MessagesManager>().MakeMessageUnreaded(quest.questName);
+                            CurrentQuestType = 2;
+                            //break;
+                        }
+                    }
                 }
-                anim.Play("NotificationOpen");
+
+                if (questsInMessages > 0)
+                {
+                    if (questsInMessages > 1)
+                    {
+                        UpdateNotificationInfo(lastQuest, false, questsInMessages);
+                        Notification.transform.Find("QuestType").GetComponent<Text>().text = "Availible " + questsInMessages.ToString() + " quests";
+                    }
+                    else
+                    {
+                        UpdateNotificationInfo(lastQuest, true , questsInMessages);
+                    }
+                    CR_NotificationShaking = StartCoroutine(ShowNotification(5));
+                }
+                
             }
         }
         //GetComponent<QuestPanelManager>().QuestAdded = true;
     }
 
+    public void UpdateNotificationInfo(Quest quest, bool showAvatar , int unreadedCount)
+    {
+        Notification.transform.Find("QuestType").GetComponent<Text>().text = quest.questDescription;
+        if (showAvatar)
+        {
+            Notification.transform.Find("Mask").gameObject.SetActive(true);
+            Notification.transform.Find("Mask").GetChild(0).GetComponent<Image>().sprite = quest.questGiverAvatar;
+        }
+        else
+        {
+            Notification.transform.Find("Mask").gameObject.SetActive(false);
+        }
+
+        Notification.transform.Find("UnreadMessages").GetComponent<Text>().text = unreadedCount.ToString();
+    }
+    
+    IEnumerator ShowNotification(float duration)
+    {
+        anim.Play("NotificationOpen");
+        yield return new WaitForSeconds(duration + 1);
+        if (anim.GetCurrentAnimatorStateInfo(anim.GetLayerIndex("Base Layer")).IsName("NotificationShaking"))
+        {
+            anim.Play("NotificationOpen0");
+        }
+    }
+    
+    public void StartStoryQuestChain()
+    {
+        if (CR_StoryQuest == null)
+            StartCoroutine(StoryQuestActivate());
+    }
+    
+    IEnumerator StoryQuestActivate()
+    {
+        int currentQuestOrder;
+        StoryQuest quest = QuestManager.instance.GetCurrentStoryQuest();
+        while (QuestManager.instance.storyQuestStage == StoryQuestStage.Started)
+        {
+            bool canNewIteration = false;
+            
+            yield return new WaitUntil(() => quest.availible);
+
+            quest.OnQuestComplete += () =>
+            {
+                quest = QuestManager.instance.GetCurrentStoryQuest();
+                Debug.Log(quest.questName);
+                canNewIteration = true;
+                StartCoroutine(WaitAndAddToActiveList(quest));
+            };
+            
+            yield return new WaitUntil(() => canNewIteration);
+        }
+    }
+
+    IEnumerator WaitAndAddToActiveList(StoryQuest quest)
+    {
+        yield return new WaitForSeconds(1.5f);
+        if (quest.availible)
+            GetComponent<QuestPanelManager>().AddQuestToActiveList(quest.questName , QuestType[1]);
+    }
+    
     public IEnumerator Notifying()
     {
         yield return new WaitForSeconds(5f);
@@ -165,6 +315,7 @@ public class PhoneManager : MonoBehaviour
     public void OnNotificationClick()
     {
         NotOpened = false;
+        StopCoroutine(CR_NotificationShaking);
         anim.Play("NotificationOpen0");
         anim.Play("Messages");
         GetComponent<Button>().interactable = false;
@@ -173,7 +324,6 @@ public class PhoneManager : MonoBehaviour
         {
             ActiveQuests++;
         }
-        ActiveQuests++;
     }
 
     public void OnNotificationPointerDown()
@@ -207,5 +357,9 @@ public class PhoneManager : MonoBehaviour
         CameraPanel.GetComponent<CameraManager>().enabled = false;
         Camera.main.GetComponent<Transform>().localEulerAngles = new Vector3(0f, 0f, 0f);
     }
-    
+
+    private void OnDestroy()
+    {
+        MessagesSave.instance.Save(SceneManager.GetActiveScene());
+    }
 }

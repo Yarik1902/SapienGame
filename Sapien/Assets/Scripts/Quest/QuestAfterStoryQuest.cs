@@ -6,30 +6,33 @@ using UnityEngine;
 
 public class QuestAfterStoryQuest : Quest
 {
-    public CardInfo questForCard;
-
+    [HideInInspector] public List<CardInfo> ignoreCards;
+    public KeyCode key;
     private void Start()
     {
         QuestManager.instance.OnStoryComplete += TryOpen;
+        TryOpen(QuestManager.instance.card);
     }
 
     private void Update()
     {
         if (activated)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-                Complete();
+            if (Input.GetKeyDown(key))
+                QuestComplete();
         }
     }
 
     public override void OpenQuest()
     {
-        TryOpen(questForCard);
+        TryOpen(QuestManager.instance.card);
     }
 
     public void TryOpen(CardInfo card)
     {
-        if (card != null && card.cardID == questForCard.cardID && !QuestManager.instance.completedQuest.TryGetValue(questName, out bool flag))
+        bool completed;
+        QuestManager.instance.completedQuest.TryGetValue(questName, out completed);
+        if (CanActivateCardOnFragmentCard(card) && !completed && QuestManager.instance.storyQuestStage == StoryQuestStage.Complete)
         {
             availible = true;
             Debug.Log($"<b>{questName}</b> <color=blue>Availible</color>");
@@ -40,7 +43,13 @@ public class QuestAfterStoryQuest : Quest
         }
     }
 
-    public void Complete()
+    public bool CanActivateCardOnFragmentCard(CardInfo card)
+    {
+        bool flag = ignoreCards.Contains(card);
+        return !flag;
+    }
+
+    public override void QuestComplete()
     {
         if (activated)
         {
@@ -52,10 +61,16 @@ public class QuestAfterStoryQuest : Quest
         {
             Debug.Log($"<b>{questName}</b> <color=red>didn't activated</color>");
         }
+        base.QuestComplete();
     }
 
     private void OnDestroy()
     {
         QuestManager.instance.OnStoryComplete -= TryOpen;
+    }
+
+    public void AddCardToIgnoreList(CardInfo card)
+    {
+        ignoreCards.Add(card);
     }
 }

@@ -7,6 +7,7 @@ public class StoryQuest : Quest
 {
     public CardInfo questFromCard;
     public int questOrder;
+    public Action<CardInfo> destroyer;
     private void Start()
     {
         destroyer = (CardInfo card) =>
@@ -28,17 +29,18 @@ public class StoryQuest : Quest
             activated = true;
             Debug.Log($"Story quest <b>{questName}</b> <color=green>Activated</color>");
 
-            QuestManager.instance.OnStoryComplete += destroyer;
+            //QuestManager.instance.OnStoryComplete += destroyer;
         }
         else
         {
             Debug.Log($"Story quest <b>{questName}</b> <color=red>don't availible , complete all quests</color>");
         }
     }
+    
 
     private void OnDestroy()
     {
-        QuestManager.instance.OnStoryComplete -= destroyer;
+        //QuestManager.instance.OnStoryComplete -= destroyer;
     }
 }
 

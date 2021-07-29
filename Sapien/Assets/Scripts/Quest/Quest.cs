@@ -6,12 +6,13 @@ using UnityEngine;
 public class Quest : MonoBehaviour
 {
     public string questName;
+    public string questDescription;
+    public Sprite questGiverAvatar;
+    public int price;
     [HideInInspector] public bool activated = false;
     [HideInInspector] public bool availible = false;
     
     public event Action OnQuestComplete;
-
-    public Action<CardInfo> destroyer;
 
     public virtual void OpenQuest()
     {
@@ -21,12 +22,10 @@ public class Quest : MonoBehaviour
 
     public virtual void Activate()
     {
-        if (availible)
+        if (availible && !activated)
         {
             activated = true;
             Debug.Log($"<b>{questName}</b> <color=green>Activated</color>");
-
-            QuestManager.instance.OnStoryComplete += destroyer;
         }
         else
         {
@@ -40,6 +39,7 @@ public class Quest : MonoBehaviour
         {
             OnQuestComplete?.Invoke();
             Debug.Log($"<b>{questName}</b> <color=yellow>Complete</color>");
+            activated = false;
         }
         else
         {
